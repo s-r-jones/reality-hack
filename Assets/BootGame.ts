@@ -74,13 +74,9 @@ export class NewScript extends BaseScriptComponent {
     stateMachine.addState({
       name: States.GROUND_CALIBRATION,
       onEnter: (state) => {
-        textContainer.enabled = true;
-        instructionText.enabled = true;
-        instructionText.text = "look at the ground to start";
+        this.changeText("look at the ground to start");
         groundPlacement.startSurfaceDetection((pos, rot) => {
-          textContainer.enabled = false;
-          instructionText.enabled = false;
-          instructionText.text = "";
+          this.disableText();
 
           this.groundPosition = pos;
           this.groundRotation = rot;
@@ -105,18 +101,12 @@ export class NewScript extends BaseScriptComponent {
       name: States.PHONE_CALIBRATION,
       onEnter: (state) => {
         // enable to text telling user to begin phone calibration
-        this.textContainer.enabled = true;
-        this.instructionText.enabled = true;
-        this.instructionText.text =
-          "Enable Phone Controller mode within your Spectacles App";
+        this.changeText(
+          "Enable Phone Controller mode within your Spectacles App"
+        );
 
         phoneController.setOnPhoneTrackingStateChange((val) => {
-          // disable text
-          ScreenLogger.getInstance().log("Phone Tracking State Change " + val);
-          this.instructionText.text = "";
-          this.instructionText.enabled = false;
-
-          textContainer.enabled = false;
+          this.disableText();
 
           stateMachine.sendSignal(States.SET_HAND_HEIGHT);
         });
@@ -136,9 +126,7 @@ export class NewScript extends BaseScriptComponent {
       name: States.SET_HAND_HEIGHT,
       onEnter: (state) => {
         // show text instructions telling user to hold their phone in their hand at their side
-        textContainer.enabled = true;
-        this.instructionText.enabled = true;
-        this.instructionText.text = "hold your hand & phone down at your side";
+        this.changeText("hold your hand & phone down at your side");
 
         // when phone is in position trigger timeout?
         // Add a confirm button?
@@ -170,9 +158,7 @@ export class NewScript extends BaseScriptComponent {
       name: States.PHONE_IN_POCKET,
       onEnter: (state) => {
         // show text instructions telling user to put their phone in their pocket
-        textContainer.enabled = true;
-        this.instructionText.enabled = true;
-        this.instructionText.text = "put your phone in your back pocket";
+        this.changeText("put your phone in your back pocket");
 
         setTimeout(() => {
           ScreenLogger.getInstance().log("Phone in pocket");
@@ -183,9 +169,7 @@ export class NewScript extends BaseScriptComponent {
         {
           nextStateName: States.FOLLOW,
           checkOnSignal(signal) {
-            textContainer.enabled = false;
-            instructionText.enabled = false;
-            instructionText.text = "";
+            this.disableText();
             return signal === States.FOLLOW;
           },
         },
@@ -195,9 +179,7 @@ export class NewScript extends BaseScriptComponent {
     stateMachine.addState({
       name: States.FOLLOW,
       onEnter: () => {
-        textContainer.enabled = true;
-        this.instructionText.enabled = true;
-        this.instructionText.text = "Grab the walker and follow the path";
+        this.changeText("Grab the walker and follow the path");
 
         // record camera position
         this.cameraStartPosition = this.camObject
@@ -208,4 +190,16 @@ export class NewScript extends BaseScriptComponent {
       },
     });
   };
+
+  disableText() {
+    this.textContainer.enabled = false;
+    this.instructionText.enabled = false;
+    this.instructionText.text = "";
+  }
+
+  changeText(text: string) {
+    this.instructionText.text = text;
+    this.instructionText.enabled = true;
+    this.textContainer.enabled = true;
+  }
 }
